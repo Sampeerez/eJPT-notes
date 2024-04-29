@@ -70,11 +70,9 @@ Information gathering is the first step of any penetration test and involvers ga
 
 The `host` command is a simple command-line utility in Unix/Linux systems that is used to perform DNS lookups. You can use it to find the IP address associated with a domain, identify the mail server, and more. Here's an example of how to use the `host` command to get the IP address of a domain:
 
-<div style="display: flex; justify-content: space-between;">
-  <code>host -a url
-  <button onclick="navigator.clipboard.writeText('host -a url')" style="background: transparent; border: none; margin-left: 70px; color: #fff;"><strong>Copy</strong> 📒</button>
-  </code>
-</div> <p>
+```bash
+host -a url 
+```
 
 If you see two IP addresses in the output, it could indicate that the target is using a proxy or a Content Delivery Network (CDN) like Cloudflare. These services can provide an additional layer of protection by hiding the real IP address of the server.
 
@@ -92,23 +90,57 @@ For more information about the technologies used on a website or for website ana
 
 `Whois` is a protocol that is used to query databases to obtain information about the registration of a domain name, an IP address block, or an autonomous system. This information can include the owner of the domain, the contact information, and the nameservers. Whois Enumeration is a process used in information gathering where a whois lookup is performed on a target domain to gather detailed information about the domain. You can use the command:
 
-<div style="display: flex; justify-content: space-between;">
-  <code>whois url / ip
-  <button onclick="navigator.clipboard.writeText('whois url / ip')" style="background: transparent; border: none; margin-left: 70px; color: #fff;"><strong>Copy</strong> 📒</button>
-  </code>
-</div> <p>
+```bash
+whois url / ip
+```
 
 Alternatively, you can use many websites such as:
 - who.is
 - whois.com
 
 ##### Website Footprinting With Netcraft
+
 `Netcraft` is a web services company offering tools for cybersecurity and web server surveys. Its Site Report tool is particularly useful for penetration testers, providing detailed information about a website's technologies, which aids in identifying potential vulnerabilities during the reconnaissance phase of a penetration test. 
 
 ##### DNS Recon
+
+`dnsrecon` is a powerful DNS (Domain Name System) enumeration script designed for penetration testers and security professionals. It is written in Python and provides the ability to perform:
+- Standard DNS queries (A, AAAA, SOA, MX, TXT, and more)
+- Zone transfers
+- Top-level domain (TLD) expansion
+- Reverse lookups for a range of IP addresses
+- Subdomain enumeration
+- DNS cache snooping
+- DNSSEC zone walking
+
+It can be used like this:
+
+```bash
+dnsrecon -d url
+```
+
+Another useful resource for DNS enumeration is the website `DNSDumpster`. It's an online tool that provides free domain research services. By simply entering a target domain, DNSDumpster generates a comprehensive map of DNS records, visualizing the connections between different components. 
+
 ##### WAF With wafw00f
+
+A `WAF` or `Web Application Firewall` is a specific form of firewall that helps protect web applications by filtering and monitoring HTTP traffic between a web application and the Internet. It typically protects web applications from attacks such as cross-site forgery, cross-site-scripting (XSS), file inclusion, and SQL injection, among others. `wafw00f` is a tool used to identify and detect what WAF a website is using. The tool works by sending a series of tests to the target site and then analyzing the responses to identify the WAF. You can use it in terminal:
+
+```bash
+wafw00f -a url
+```
+
 ##### Subdomain Enumeration With Sublist3r
+
+`sublist3r` is a Python tool designed to enumerate website subdomains. It uses a variety of techniques and sources to gather subdomain names, including search engines like Google, Yahoo, Bing, and Baidu, as well as services like Netcraft, Virustotal, ThreatCrowd, DNSdumpster, and ReverseDNS. Sublist3r also supports multithreading for faster results, and can integrate with the dnsrecon tool to conduct DNS queries and zone transfers on the discovered subdomains. It can be used liek this:
+
+```bash
+sublist3r -d url 
+```
+
 ##### Google Dorks
+
+
+
 ##### Email Harvesting With theHarvester
 ##### Leaked Password Databases
 
