@@ -325,18 +325,8 @@ In the realm of penetration testing, Network Scanning & Footprinting stands as a
 #### **Active Information Gathering**
 
 The methodology in pentesting is something like:
-1. Information Gathering:
-   - Passive Information Gathering (OSINT) 
-   - Active Information Gathering (Network mapping, host discovery, port scanning, service detection and OS)
-2. Enumeration
-   - Service and OS enumeration (Service enumeration, user enumeration, share enumeration)
-3. Exploitation
-   - Vulnerability analysis and threat modeling (Vulnerability analysis and identification)
-   - Exploitation (Deploying or modifying exploits, service exploitation)
-4. Post exploitation 
-   - Post exploitation (Local enumeration, privilege escalation, credential access, persistence, defense evasion, lateral movement)
-5. Reporting
-   - Reporting (Report writing and recommendations)
+
+<img src="./Images/Footprinting-and-Scanning/Pentesting_Methodology.png" width="700"><p>
 
 Active information gathering is a phase in penetration testing where the tester directly interacts with the target system or network to collect data and identify potential vulnerabilities. This phase, which goes beyond passive reconnaissance, may involve scanning, probing, and directly interacting with network services.
 
@@ -377,6 +367,10 @@ The `Network Layer` (Layer 3) of the OSI model is responsible for logical addres
    - IPv4
      - Uses 32-bit addresses (e.g., 192.168.0.1).
      - Limited address space led to the development of IPv6.
+     - The vast majority of networks run IP version 4 (IPv4). They consist of four bytes, or octets where a dot delimits every octet in the address. There are  some reserved address ranges. You can find the details about the special use of IPv4 addresses in [RFC5735](https://tools.ietf.org/html/rfc5735):
+         - `0.0.0.0 – 0.255.255.255`: Represents "this" network.
+         - `127.0.0.0 – 127.255.255.255`: Represents the local host (e.g., your computer).
+         - `192.168.0.0 – 192.168.255.255`: Reserved for private networks.
    - IPv6
      - Uses 128-bit addresses (e.g., 2001:0db8:85a3:0000:0000:8a2e:0370:7334).
      - Provides a much larger address space than IPv4.
@@ -393,8 +387,6 @@ The `Network Layer` (Layer 3) of the OSI model is responsible for logical addres
 3. Dynamic Host Configuration Protocol (DHCP)
    - Dynamically assigns IP addresses to network devices.
 
-The `IPv4 header fields` look like this:
-
 | IPv4 Header Fields | Purpose |
 | --- | --- |
 | Version (4 bits) | Indicates the version of the IP protocol being used. For IPv4, the value is 4. |
@@ -408,41 +400,31 @@ The `IPv4 header fields` look like this:
 | Source IP Address (32 bits) | Specifies the IPv4 address of the sender (source) of the packet. |
 | Destination IP Address (32 bits) | Specifies the IPv4 address of the intended recipient (destination) of the packet. |
 
-`IPv4 Addresses`
-- The vast majority of networks run IP version 4 (IPv4).
-- An IPv4 address consists of four bytes, or octets; a byte consists of 8 bits. A dot delimits every octet in the address. For example: `73.5.12.132`.
-- There are some reserved address ranges:
-  - `0.0.0.0 – 0.255.255.255`: Represents "this" network.
-  - `127.0.0.0 – 127.255.255.255`: Represents the local host (e.g., your computer).
-  - `192.168.0.0 – 192.168.255.255`: Reserved for private networks.
-- You can find the details about the special use of IPv4 addresses in [RFC5735](https://tools.ietf.org/html/rfc5735).
+<img src="./Images/Footprinting-and-Scanning/IP_Header_Fields.png" width="800"><p>
 
 #### **Transport Layer**
 
 The `Transport Layer`, which is the fourth layer of the `OSI (Open Systems Interconnection)` model, plays a crucial role in facilitating communication between two devices across a network. This layer is responsible for ensuring `reliable, end-to-end communication`. It handles tasks such as `error detection`, `flow control`, and `segmentation` of data into smaller units. The primary responsibility of the `Transport Layer` is to provide `end-to-end communication` and ensure the `reliable and ordered delivery` of data between two devices on a network. There are two protocols:
 
-- `TCP (Transmission Control Protocol)`: A connection-oriented protocol providing reliable and ordered delivery of data. It operates at the Transport Layer of the OSI model. It's a connection-oriented protocol that ensures reliable and ordered data transfer between two devices over a network. TCP establishes a virtual circuit for data exchange, uses acknowledgments (ACK) and retransmission for reliable delivery, and reorders any out-of-order data segments before passing them to the application. It uses the `3-Way Handshake` which is a process used to establish a reliable connection between two devices before they begin data transmission and involves a series of three messages exchanged between the sender (client) and the receiver (server): 
+- `TCP (Transmission Control Protocol)`: A `connection-oriented` protocol providing reliable and ordered delivery of data. It operates at the Transport Layer of the OSI model. It ensures reliable and ordered data transfer between two devices over a network. TCP establishes a virtual circuit for data exchange, uses acknowledgments (ACK) and retransmission for reliable delivery, and reorders any out-of-order data segments before passing them to the application. It uses the `3-Way Handshake` which is a process used to establish a reliable connection between two devices before they begin data transmission and involves a series of three messages exchanged between the sender (client) and the receiver (server): 
    - `SYN (Synchronize)`: The process begins with the client sending a TCP segment with the SYN (Synchronize) flag set. This initial message indicates the client's intention to establish a connection and includes an initial sequence number (ISN), which is a randomly chosen value.
    - `SYN-ACK (Synchronize-Acknowledge)`: Upon receiving the SYN segment, the server responds with a TCP segment that has both the SYN and ACK (Acknowledge) flags set. The acknowledgment (ACK) number is set to one more than the initial sequence number received in the client's SYN segment. The server also generates its own initial sequence number.
    - `ACK (Acknowledge)`: Finally, the client acknowledges the server's response by sending a TCP segment with the ACK flag set. The acknowledgment number is set to one more than the server's initial sequence number.
+
+      <img src="./Images/Footprinting-and-Scanning/3_Way_Handshake.png" width="500"><p>
    
    At this point, the connection is established, and both devices can begin transmitting data. After the three-way handshake is complete, the devices can exchange data in both directions. The acknowledgment numbers in subsequent segments are used to confirm the receipt of data and to manage the flow of information. The `fields` TCP uses are the `SRC (16 bits)` & `DST (16 bits)` which identifies the source and destination port. It also uses `control flags` to manage various aspects of the communication process. They are included in the TCP header and control different features during the establishment, maintenance, and termination of a TCP connection:
 
-   - Establishing a Connection:
-      + SYN (Set): Initiates a connection request.
-      + ACK (Clear): No acknowledgment yet.
-      + FIN (Clear): No termination request.
-   - Establishing a Connection (Response):
-      + SYN (Set): Acknowledges the connection request.
-      + ACK (Set): Acknowledges the received data.
-      + FIN (Clear): No termination request.
-   - Terminating a Connection:
-      + SYN (Clear): No connection request.
-      + ACK (Set): Acknowledges the received data.
-      + FIN (Set): Initiates connection termination.
+   | Stage | SYN | ACK | FIN |
+   |-------|-----|-----|-----|
+   | Establishing a Connection | Set (Initiates a connection request) | Clear (No acknowledgment yet) | Clear (No termination request) |
+   | Establishing a Connection (Response) | Set (Acknowledges the connection request) | Set (Acknowledges the received data) | Clear (No termination request) |
+   | Terminating a Connection | Clear (No connection request) | Set (Acknowledges the received data) | Set (Initiates connection termination) |
 
-   TCP utilizes port numbers to differentiate between various services or applications on a device. These port numbers are 16-bit unsigned integers, falling into three distinct ranges. The highest port number available in the TCP/IP protocol suite is 65,535. The range from 0 to 1023, known as "Well-Known Ports", is reserved for recognized services and protocols, standardized by the Internet. 
-   - Assigned Numbers Authority (`IANA`):
+   <img src="./Images/Footprinting-and-Scanning/TCP_Header_Fields.png" width="700"><p>
+
+   TCP utilizes port numbers to differentiate between various services or applications on a device. These port numbers are 16-bit unsigned integers, falling into three distinct ranges. The highest port number available in the TCP/IP protocol suite is `65535`:
+   - The range from 0 to 1023, known as `Well-Known Ports`, is reserved for recognized services and protocols, standardized by the Internet Assigned Numbers Authority (`IANA`):
       + 80: HTTP (Hypertext Transfer Protocol)
       + 443: HTTPS (HTTP Secure)
       + 21: FTP (File Transfer Protocol)
@@ -469,17 +451,124 @@ The `Transport Layer`, which is the fourth layer of the `OSI (Open Systems Inter
 
 ### **Host Discovery**
 
+Host Discovery is a critical initial step in any network interaction. It involves identifying active hosts in a network, which can be servers, routers, or any other devices connected to the network. This process is essential for network management, security auditing, and any other operations that require knowledge of the devices present in a network.
+
 #### **Network Mapping**
+
+The `active information gathering` phase in penetration testing involves `discovering network hosts`, `performing port scanning`, and `enumeration`. Each host on a network has a unique IP address. Penetration testers need to identify which hosts are online, the open ports on these hosts, and their operating systems. This process is known as `Network Mapping`, a critical step in understanding the network's layout, architecture, and potential entry points for exploitation.
+
+In a penetration testing scenario, the tester is given an address block (e.g., 200.200.0.0/16) that could contain up to 65536 hosts. The tester's initial task is to identify active hosts within this range, emphasizing the importance of `network mapping` at the start of the test. Network mapping, crucial when dealing with an unknown network, aims to create a clear picture of the network's architecture and its components. It helps understand the network's structure, the number of systems, their potential roles, and involves identifying the network IP mask and active hosts. In the context of network mapping during penetration testing, key objectives include:
+
+   - `Discovery of Live Hosts`: Identifying active devices and hosts on the network. This involves determining which IP addresses are currently in use.
+   - `Identification of Open Ports and Services`: Determining which ports are open on the discovered hosts and identifying the services running on those ports. This information helps pentesters understand the attack surface and potential vulnerabilities.
+   - `Network Topology Mapping`: Creating a map or diagram of the network topology, including routers, switches, firewalls, and other network infrastructure elements. Understanding the layout of the network assists in planning further penetration testing activities.
+   - `Operating System Fingerprinting`: Determining the operating systems running on discovered hosts. Knowing the operating system helps pentesters tailor their attack strategies to target vulnerabilities specific to that OS.
+   - `Service Version Detection`: Identifying specific versions of services running on open ports. This information is crucial for pinpointing vulnerabilities associated with particular service versions.
+   - `Identifying Filtering and Security Measures`: Discovering firewalls, intrusion prevention systems, and other security measures in place. This helps pentesters understand the network's defenses and plan their approach accordingly.
+
+`Nmap`, short for Network Mapper, is a widely-used, open-source tool for network scanning. It's primarily used to discover hosts and services on a computer network, detect open ports, and identify potential vulnerabilities. Due to its power and versatility, Nmap has become a staple in the toolkits of security professionals, network administrators, and penetration testers. Nmap's functionality extends across various aspects of network security:
+
+- `Host Discovery`: Nmap is capable of identifying active hosts on a network. It achieves this using techniques such as ICMP echo requests, ARP requests, or TCP/UDP probes.
+- `Port Scanning`: Nmap can execute various types of port scans to discover open ports on target hosts.
+- `Service Version Detection`: Nmap can identify the versions of services running on open ports. This information is crucial for understanding the software stack and potential vulnerabilities associated with specific versions.
+- `Operating System Fingerprinting`: Nmap can attempt to identify the operating systems of target hosts based on characteristics observed during the scanning process.
 
 #### **Host Discovery Techniques**
 
+`Host discovery` is a critical component of penetration testing. It entails the identification of active hosts within a network before proceeding with in-depth exploration and vulnerability assessment. The choice of host discovery techniques can be influenced by various factors, such as the characteristics of the network, the requirement for stealth, and the specific goals of the penetration test. Host discovery techniques are essential in identifying active hosts within a network. Here are some commonly used methods:
+
+- `Ping Sweeps (ICMP Echo Requests)`: This technique involves sending ICMP Echo Requests (ping) to a range of IP addresses to identify live hosts. It's a quick and commonly used method.
+- `ARP Scanning`: This technique uses Address Resolution Protocol (ARP) requests to identify hosts on a local network. It's effective in discovering hosts within the same broadcast domain.
+- `TCP SYN Ping (Half-Open Scan)`: This method involves sending TCP SYN packets to a specific port (often port 80) to check if a host is alive. If the host is alive, it responds with a TCP SYN-ACK. This technique is stealthier than ICMP ping.
+- `UDP Ping`: This technique involves sending UDP packets to a specific port to check if a host is alive. It can be effective for hosts that do not respond to ICMP or TCP probes.
+- `TCP ACK Ping`: This method involves sending TCP ACK packets to a specific port to check if a host is alive. This technique expects no response, but if a TCP RST (reset) is received, it indicates that the host is alive.
+- `SYN-ACK Ping (Sends SYN-ACK packets)`: This technique involves sending TCP SYN-ACK packets to a specific port to check if a host is alive. If a TCP RST is received, it indicates that the host is alive.
+
+The choice of the best host discovery technique in penetration testing depends on various factors, and there isn't a one-size-fits-all answer. The effectiveness of a host discovery technique can be influenced by the specific characteristics of the target network, the security controls in place, and the goals of the penetration test. Here are a few considerations:
+
+| Technique   | Pros                                                                 | Cons                                                                                       |
+|-------------|----------------------------------------------------------------------|--------------------------------------------------------------------------------------------|
+| ICMP Ping   | ICMP ping is a widely supported and quick method for identifying live hosts. | Some hosts or firewalls may be configured to block ICMP traffic, limiting its effectiveness. ICMP ping can also be easily detected. |
+| TCP SYN Ping | TCP SYN ping is stealthier than ICMP and may bypass firewalls that allow outbound connections. | Some hosts may not respond to TCP SYN requests, and the results can be affected by firewalls and security devices. |
+
 #### **Ping Sweeps**
+
+The `ping` command is a utility designed to check if a host is alive or reachable. This command is available on every major operating system and can be executed in the command line or terminal as follows:
+
+```bash
+ping www.site.test
+```
+
+The output might look something like this:
+
+```bash
+Pinging www.site.test (12.34.56.78) with 32 bytes of data:
+Reply from 12.34.56.78: bytes32 time=57ms TTL=127
+Reply from 12.34.56.78: bytes32 time=43ms TTL=127
+Reply from 12.34.56.78: bytes32 time=44ms TTL=127
+```
+
+The `ping` utility operates by sending one or more specially crafted `ICMP` packets (`Type 8 - echo request`) to a host. If the destination host replies with an `ICMP echo reply (Type 0)` packet, then the host is considered `alive` or `online`. In the context of `ICMP (Internet Control Message Protocol)`, the `ICMP Echo Request` and `Echo Reply` messages are used for the purpose of `ping`. These messages have specific `ICMP type` and `code` values associated with them.
+
+| ICMP Message   | Type | Code |
+|----------------|------|------|
+| Echo Request   | 8    | 0    |
+| Echo Reply     | 0    | 0    |
+
+The `ICMP` header has a "Type" field indicating the purpose of the message, and a "Code" field for additional context. `ICMP Echo Request` and `Echo Reply` have Type values 8 and 0 respectively. When a device sends an `Echo Request`, it creates an `ICMP` packet with `Type 8, Code 0`. The responding device creates an `ICMP` packet with `Type 0, Code 0` for `Echo Reply`. A `ping sweep` is a network scanning technique to identify live hosts within a specific IP range by sending `ICMP Echo Request` messages and monitoring responses. If a host is offline or unreachable, the `Echo Request` won't receive a corresponding `Echo Reply`. The absence of a response could be due to network congestion, temporary unavailability, or firewall settings blocking `ICMP` traffic. The `ping` utility checks host reachability, but results should be interpreted in the context of network conditions and host configuration.
+
+<img src="./Images/Footprinting-and-Scanning/Ping_Sweeps.png" width="500"><p>
+
+Using the command ping you can specify the amount of ICMP packets you want to send:
+
+```bash
+ping -c 1 <ip>
+```
+
+Another tool you can use is fping, and can be used like this:
+
+```bash
+fping -a -g <ip>/<subnet> 2>/dev/null
+```
 
 #### **Host Discovery With Nmap**
 
+For host Discovery with Nmap, the best command you can use is:
+
+```bash
+sudo nmap -sn -v -T4 -PS21,22,25,80,445,3389,8080 -PU137,138 -iL ip.txt
+```
+
+- `-sn`: Ping scan, no port scan. Used to find which hosts are up.
+- `-v`: Increases verbosity. Provides more details about the scan.
+- `-T4`: Sets the timing template to "aggressive". Speeds up the scan, but may miss some details.
+- `-PS`: TCP SYN ping scan. Used for host discovery, especially when ICMP is blocked.
+- `-PU`: UDP ping. Used for host discovery when TCP or ICMP is blocked.
+- `-iL`: This is used to input a list of targets to be scanned from a file.
+---
+- `-PA`: TCP ACK ping. May not be reliable if firewalls ignore ACK packets.
+- `-PE`: ICMP echo request ping. May be blocked by firewalls or hosts ignoring ICMP.
+- `--send-ip`: Controls whether the source IP is sent in network requests.
+
 ### **Port Scanning**
 
+Port scanning is a crucial step in the reconnaissance phase of a penetration test. It allows us to discover open ports on a target system and identify the services running on those ports. This information can be used to detect potential vulnerabilities that could be exploited. In this section, we will discuss different techniques and tools used for port scanning, including their advantages and disadvantages.
+
 #### **Port Scanning With Nmap**
+
+```bash
+sudo nmap -p- -sS --open -vvv --min-rate 5000 -n -Pn -iL ip.txt -oG allPorts.txt
+```
+
+- `-p-`: This tells nmap to scan all 65535 ports. By default, nmap only scans the most common 1000 ports.
+- `-sS`: This is the TCP SYN scan option. It's often called "half-open scanning" because you don't open a full TCP connection. You send a SYN packet, as if you are going to open a real connection and then wait for a response.
+- `--open`: This tells nmap to only show open ports.
+- `-vvv`: Maximum verbosity level, displays all the details about the scan that nmap can provide.
+- `--min-rate 5000`: This sets the minimum number of packets that nmap will send per second. In this case, it's set to 5000 packets per second.
+- `-n`: This tells nmap not to do a DNS resolution for the IP addresses.
+- `-Pn`: This tells nmap to assume the host is up and skip the host discovery phase.
+- `-iL`: This is used to input a list of targets to be scanned from a file.
+- `-oG`: This tells nmap to output the results in a "grepable" format to a file. 
 
 #### **Service Version & OS Detection**
 
