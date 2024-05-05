@@ -27,24 +27,21 @@ The aim is to provide a structured and easy-to-follow study guide for anyone pre
          - [Leaked Password Databases](#leaked-password-databases)
       - [Active Information Gathering](#active-information-gathering)
          - [DNS Zone Transfers](#dns-zone-transfers)
-         - [Host Discovery With Nmap](#host-discovery-with-nmap)
-         - [Port Scanning With Nmap](#port-scanning-with-nmap)
+         - [Host Discovery](#host-discovery)
+         - [Port Scanning](#port-scanning)
    - [Footprinting & Scanning](#footprinting-and-scanning)
       - [Introduction to Footprinting & Scanning](#introduction-to-footprinting-and-scanning)
       - [Networking Primer](#networking-primer)
          - [Networking Fundamentals](#networking-fundamentals)
          - [Network Layer](#network-layer)
-         - [Transport Layer - Part 1](#transport-layer---part-1)
-         - [Transport Layer - Part 2](#transport-layer---part-2)
+         - [Transport Layer](#transport-layer)
       - [Host Discovery](#host-discovery)
          - [Network Mapping](#network-mapping)
          - [Host Discovery Techniques](#host-discovery-techniques)
          - [Ping Sweeps](#ping-sweeps)
-         - [Host Discovery With Nmap - Part 1](#host-discovery-with-nmap---part-1)
-         - [Host Discovery With Nmap - Part 2](#host-discovery-with-nmap---part-2)
+         - [Host Discovery With Nmap](#host-discovery-with-nmap)
       - [Port Scanning](#port-scanning)
-         - [Port Scanning With Nmap - Part 1](#port-scanning-with-nmap---part-1)
-         - [Port Scanning With Nmap - Part 2](#port-scanning-with-nmap---part-2)
+         - [Port Scanning With Nmap](#port-scanning-with-nmap)
          - [Service Version & OS Detection](#service-version--os-detection)
          - [Nmap Scripting Engine (NSE)](#nmap-scripting-engine-nse)
       - [Evasion, Scan Performance & Output](#evasion-scan-performance--output)
@@ -246,7 +243,7 @@ dig <zone_transfer_switch> <@server> <url>
 
 Here you can see an example of [zone transfer](https://digi.ninja/projects/zonetransferme.php).
 
-#### **Host Discovery With Nmap**
+#### **Host Discovery**
 
 `Nmap`, short for Network Mapper, is a free and open-source tool for network discovery and security auditing. It is used to discover hosts and services on a computer network, thus creating a "map" of the network. Nmap can be used to monitor single hosts as well as vast networks that encompass hundreds of thousands of machines and subnets. Some of the features of Nmap include:
 
@@ -272,12 +269,12 @@ sudo nmap -sn <ip/subnet>
 sudo netdiscover -i <interface> -r <ip/subnet>
 ```
 
-#### **Port Scanning With Nmap**
+#### **Port Scanning**
 
 To conduct a comprehensive port scan using nmap, the following command can be utilized:
 
 ```bash
-nmap -p- -Pn -F -vvv -sV -O -sC <ip>
+nmap -p- -Pn -F -vvv -sCV -O -sC -T5 <ip>
 ```
 
 This command performs a TCP port scan on the specified IP address which can provide valuable information about the services running on that system and potentially reveal vulnerabilities that could be exploited.
@@ -311,19 +308,164 @@ The ports on a networked computer can be in one of three states:
 
 ## **Footprinting and Scanning**
 
+In the realm of penetration testing, Network Scanning & Footprinting stands as a crucial phase, wielding significant influence over the test's success. This process involves identifying hosts, scanning for open ports, and discerning services and operating systems—a skill pivotal for the subsequent exploitation phase. To master these techniques, a foundational understanding of networks and protocols is imperative. This comprehensive course begins by introducing Networking and the OSI model, progressing to the Network and Transport Layers, covering key protocols like TCP/IP, ICMP, and UDP.
+
 ### **Introduction to Footprinting and Scanning**
+
+- Introduction To Network Mapping
+- Networking Fundamentals
+- Host Discovery With Nmap
+- Port Scanning With Nmap
+- Host Fingerprinting With Nmap
+- Introduction To The Nmap Scripting Engine (NSE)
+- Firewall Detection & Evasion With Nmap
+- Nmap Scan Timing & Performance
+- Nmap Output & Verbosity
 
 #### **Active Information Gathering**
 
+The methodology in pentesting is something like:
+1. Information Gathering:
+   - Passive Information Gathering (OSINT) 
+   - Active Information Gathering (Network mapping, host discovery, port scanning, service detection and OS)
+2. Enumeration
+   - Service and OS enumeration (Service enumeration, user enumeration, share enumeration)
+3. Exploitation
+   - Vulnerability analysis and threat modeling (Vulnerability analysis and identification)
+   - Exploitation (Deploying or modifying exploits, service exploitation)
+4. Post exploitation 
+   - Post exploitation (Local enumeration, privilege escalation, credential access, persistence, defense evasion, lateral movement)
+5. Reporting
+   - Reporting (Report writing and recommendations)
+
+Active information gathering is a phase in penetration testing where the tester directly interacts with the target system or network to collect data and identify potential vulnerabilities. This phase, which goes beyond passive reconnaissance, may involve scanning, probing, and directly interacting with network services.
+
 ### **Networking Primer**
+
+This section serves as a preliminary guide to the field of networking. It's designed to provide the foundational knowledge necessary for understanding more complex networking concepts and tasks. This section might cover topics such as the basics of network protocols, the structure and function of different network layers, and the principles of network communication.
 
 #### **Networking Fundamentals**
 
+In `computer networking`, `hosts` communicate using `network protocols`, enabling systems with different hardware and software to interact effectively. Network protocols cater to various services and functionalities. The main aim of networking is to exchange information between networked computers through packets. Packets, which are streams of bits transmitted as electrical signals on physical media like `Ethernet` or `Wi-Fi`, are interpreted as bits (zeros and ones) that form the information. This process facilitates effective data exchange.
+
+Every packet in all protocols has the following structure: `Header` and `Payload`. The `Header` has a protocol-specific structure. This ensures that the receiving host can correctly interpret the `Payload` and handle the overall communication. The `Payload` is the actual information being sent. It could be something like part of an email message or the content of a file during a download.
+
+The `OSI (Open Systems Interconnection) Model`
+- The OSI Model is a conceptual framework that standardizes the functions of a telecommunication or computing system into seven abstraction layers.
+- Developed by the International Organization for Standardization (ISO), it facilitates communication between different systems and devices, ensuring interoperability and understanding across a broad range of networking technologies.
+- The OSI Model is divided into seven layers, each representing a specific functionality in the process of network communication.
+- The OSI model serves as a guideline for developing and understanding network protocols and communication processes. 
+- While it is a conceptual model, it helps in organizing the complex task of network communication into manageable and structured layers. 
+- The OSI model is not a strict blueprint for every networking system but rather a reference model that aids in understanding and designing network architectures.
+
+| OSI Layer | Function | Examples |
+|-----------|----------|----------|
+| 7. Application Layer | Provides network services directly to end-users or applications. | HTTP, FTP, IRC, SSH, DNS |
+| 6. Presentation Layer | Translates data between the application layer and lower layers. Responsible for data format translation, encryption, and compression to ensure that data is presented in a readable format. | SSL/TLS, JPEG, GIF, SSH, IMAP |
+| 5. Session Layer | Manages sessions or connections between applications. Handles synchronization, dialog control, and token management. (Interhost communication) | APIs, NetBIOS, RPC |
+| 4. Transport Layer | Ensures end-to-end communication and provides flow control. | TCP, UDP |
+| 3. Network Layer | Responsible for logical addressing and routing. (Logical Addressing) | IP, ICMP, IPSec |
+| 2. Data Link Layer | Manages access to the physical medium and provides error detection. Responsible for framing, addressing, and error checking of data frames. (Physical addressing) | Ethernet, PPP, Switches etc |
+| 1. Physical Layer | Deals with the physical connection between devices. | USB, Ethernet Cables, Coax, Fiber, Hubs etc |
+
 #### **Network Layer**
 
-#### **Transport Layer - Part 1**
+The `Network Layer` (Layer 3) of the OSI model is responsible for logical addressing, routing, and forwarding data packets between devices across different networks. Its primary goal is to determine the optimal path for data to travel from the source to the destination, even if the devices are on separate networks. The Network Layer abstracts the underlying physical network, enabling the creation of a cohesive internetwork. Several key protocols operate at the Network Layer of the OSI model. Here are some prominent Network Layer protocols:
 
-#### **Transport Layer - Part 2**
+1. Internet Protocol (IP)
+   - Handles logical addressing, routing, and data packet fragmentation and reassembly.
+   - IPv4
+     - Uses 32-bit addresses (e.g., 192.168.0.1).
+     - Limited address space led to the development of IPv6.
+   - IPv6
+     - Uses 128-bit addresses (e.g., 2001:0db8:85a3:0000:0000:8a2e:0370:7334).
+     - Provides a much larger address space than IPv4.
+   - IP Functionality
+     - *Logical Addressing*: Identifies devices on a network.
+     - *Packet Structure*: Organizes data into packets with a header and payload.
+     - *IP Header Format*: Contains key information for packet delivery.
+     - *Fragmentation and Reassembly*: Breaks down and rebuilds packets for efficient transmission.
+     - *IP Addressing Types*: Addresses can be unicast, broadcast, or multicast.
+     - *Subnetting*: Divides a large network into smaller subnets for efficiency and security.
+2. Internet Control Message Protocol (ICMP)
+   - Associated with IP.
+   - Used for error reporting and diagnostics.
+3. Dynamic Host Configuration Protocol (DHCP)
+   - Dynamically assigns IP addresses to network devices.
+
+The `IPv4 header fields` look like this:
+
+| IPv4 Header Fields | Purpose |
+| --- | --- |
+| Version (4 bits) | Indicates the version of the IP protocol being used. For IPv4, the value is 4. |
+| Header Length (4 bits) | Specifies the length of the IPv4 header in 32-bit words. The minimum value is 5 (20-byte header), and the maximum is 15 (60-byte header). |
+| Type of Service (8 bits) | Originally designed for specifying the quality of service. Includes fields such as Differentiated Services Code Point (DSCP) and Explicit Congestion Notification (ECN) for packet priority and congestion control. |
+| Total Length (16 bits) | Represents the total size of the IP packet, including both the header and the payload (data). The maximum size is 65,535 bytes. |
+| Identification (16 bits) | Used for reassembling fragmented packets. Each fragment of a packet is assigned the same identification value. |
+| Flags (3 bits) | Includes three flags related to packet fragmentation: Reserved (bit 0), Don't Fragment (DF, bit 1), and More Fragments (MF, bit 2). |
+| Time-to-Live (TTL, 8 bits) | Represents the maximum number of hops (routers) a packet can traverse before being discarded. It is decremented by one at each hop. |
+| Protocol (8 bits) | Identifies the higher-layer protocol that will receive the packet after IP processing. Common values include 6 for TCP, 17 for UDP, and 1 for ICMP. |
+| Source IP Address (32 bits) | Specifies the IPv4 address of the sender (source) of the packet. |
+| Destination IP Address (32 bits) | Specifies the IPv4 address of the intended recipient (destination) of the packet. |
+
+`IPv4 Addresses`
+- The vast majority of networks run IP version 4 (IPv4).
+- An IPv4 address consists of four bytes, or octets; a byte consists of 8 bits. A dot delimits every octet in the address. For example: `73.5.12.132`.
+- There are some reserved address ranges:
+  - `0.0.0.0 – 0.255.255.255`: Represents "this" network.
+  - `127.0.0.0 – 127.255.255.255`: Represents the local host (e.g., your computer).
+  - `192.168.0.0 – 192.168.255.255`: Reserved for private networks.
+- You can find the details about the special use of IPv4 addresses in [RFC5735](https://tools.ietf.org/html/rfc5735).
+
+#### **Transport Layer**
+
+The `Transport Layer`, which is the fourth layer of the `OSI (Open Systems Interconnection)` model, plays a crucial role in facilitating communication between two devices across a network. This layer is responsible for ensuring `reliable, end-to-end communication`. It handles tasks such as `error detection`, `flow control`, and `segmentation` of data into smaller units. The primary responsibility of the `Transport Layer` is to provide `end-to-end communication` and ensure the `reliable and ordered delivery` of data between two devices on a network. There are two protocols:
+
+- `TCP (Transmission Control Protocol)`: A connection-oriented protocol providing reliable and ordered delivery of data. It operates at the Transport Layer of the OSI model. It's a connection-oriented protocol that ensures reliable and ordered data transfer between two devices over a network. TCP establishes a virtual circuit for data exchange, uses acknowledgments (ACK) and retransmission for reliable delivery, and reorders any out-of-order data segments before passing them to the application. It uses the `3-Way Handshake` which is a process used to establish a reliable connection between two devices before they begin data transmission and involves a series of three messages exchanged between the sender (client) and the receiver (server): 
+   - `SYN (Synchronize)`: The process begins with the client sending a TCP segment with the SYN (Synchronize) flag set. This initial message indicates the client's intention to establish a connection and includes an initial sequence number (ISN), which is a randomly chosen value.
+   - `SYN-ACK (Synchronize-Acknowledge)`: Upon receiving the SYN segment, the server responds with a TCP segment that has both the SYN and ACK (Acknowledge) flags set. The acknowledgment (ACK) number is set to one more than the initial sequence number received in the client's SYN segment. The server also generates its own initial sequence number.
+   - `ACK (Acknowledge)`: Finally, the client acknowledges the server's response by sending a TCP segment with the ACK flag set. The acknowledgment number is set to one more than the server's initial sequence number.
+   
+   At this point, the connection is established, and both devices can begin transmitting data. After the three-way handshake is complete, the devices can exchange data in both directions. The acknowledgment numbers in subsequent segments are used to confirm the receipt of data and to manage the flow of information. The `fields` TCP uses are the `SRC (16 bits)` & `DST (16 bits)` which identifies the source and destination port. It also uses `control flags` to manage various aspects of the communication process. They are included in the TCP header and control different features during the establishment, maintenance, and termination of a TCP connection:
+
+   - Establishing a Connection:
+      + SYN (Set): Initiates a connection request.
+      + ACK (Clear): No acknowledgment yet.
+      + FIN (Clear): No termination request.
+   - Establishing a Connection (Response):
+      + SYN (Set): Acknowledges the connection request.
+      + ACK (Set): Acknowledges the received data.
+      + FIN (Clear): No termination request.
+   - Terminating a Connection:
+      + SYN (Clear): No connection request.
+      + ACK (Set): Acknowledges the received data.
+      + FIN (Set): Initiates connection termination.
+
+   TCP utilizes port numbers to differentiate between various services or applications on a device. These port numbers are 16-bit unsigned integers, falling into three distinct ranges. The highest port number available in the TCP/IP protocol suite is 65,535. The range from 0 to 1023, known as "Well-Known Ports", is reserved for recognized services and protocols, standardized by the Internet. 
+   - Assigned Numbers Authority (`IANA`):
+      + 80: HTTP (Hypertext Transfer Protocol)
+      + 443: HTTPS (HTTP Secure)
+      + 21: FTP (File Transfer Protocol)
+      + 22: SSH (Secure Shell)
+      + 25: SMTP (Simple Mail Transfer Protocol)
+      + 110: POP3 (Post Office Protocol version 3)
+   - `Registered Ports` (1024-49151): Port numbers from 1024 to 49151 are registered for specific services or applications. These are typically assigned by the IANA to software vendors or developers for their applications. While they are not standardized, they are often used for well-known services:
+      + 3389: Remote Desktop Protocol (RDP)
+      + 3306: MySQL Database
+      + 8080: HTTP alternative port
+      + 27017: MongoDB Database
+
+- `UDP (User Datagram Protocol)`: A connectionless protocol that prioritizes speed over reliability or order of data delivery. This means that UDP does not establish a connection before transmitting data and does not provide any guarantees that data will be delivered in the order it was sent or even delivered at all. Despite these limitations, the simplicity and efficiency of UDP make it an ideal choice for certain types of applications.
+
+`TCP vs UDP`
+
+| Feature | UDP | TCP |
+|---------|-----|-----|
+| Connection | Connectionless | 3-Way Handshake |
+| Reliability | Unreliable, no guaranteed delivery of packets | Reliable, guarantees delivery and order of packets and supports retransmission |
+| Header Size | Smaller header size, lower overhead | Larger header size |
+| Applications | VOIP, streaming, gaming | HTTP, Email |
+| Examples | DNS, DHCP, SNMP, VoIP (e.g., SIP), online gaming. | HTTP, FTP, Telnet, SMTP (email), HTTPS. |
 
 ### **Host Discovery**
 
@@ -333,15 +475,11 @@ The ports on a networked computer can be in one of three states:
 
 #### **Ping Sweeps**
 
-#### **Host Discovery With Nmap - Part 1**
-
-#### **Host Discovery With Nmap - Part 2**
+#### **Host Discovery With Nmap**
 
 ### **Port Scanning**
 
-#### **Port Scanning With Nmap - Part 1**
-
-#### **Port Scanning With Nmap - Part 2**
+#### **Port Scanning With Nmap**
 
 #### **Service Version & OS Detection**
 
